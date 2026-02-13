@@ -1,0 +1,60 @@
+// Solución – Con INNER JOIN
+select al.boleta, nombre
+from Escuela.Alumno al
+inner join
+(select boleta, count(*) num_mat
+ from escuela.cursa c
+ group by boleta
+ having count(*) >= 2) as mat_alum
+on al.boleta = mat_alum.boleta
+// Subconsulta
+select boleta, count(*) num_mat
+from escuela.cursa
+group by boleta
+having count(*) >= 2
+////////////////////////////////////////////////////////////////////////////
+// Solución – Con IN
+select boleta, nombre
+from Escuela.Alumno 
+where boleta in 
+       (select boleta
+        from escuela.cursa
+        group by boleta
+        having count(*) >= 2)
+/////////////////////////////////////////////////////////////////////////
+
+// Solución  – Comparando dos conjuntos
+select T1.boleta
+from (
+   select c.boleta, count(distinct c.clave) cant_mat
+   from Escuela.Cursa c
+   join Escuela.Imparte i
+   on c.clave = i.clave
+   and c.Semestre = i.semestre
+   and c.idGrupo = i.idGrupo
+   and c.calif >= 6 
+   and i.numEmpleado = 'P0000001'
+   group by c.boleta
+) as T1
+join (
+   select count(distinct clave) as cant_mat
+   from Escuela.Imparte
+   where numEmpleado = 'P0000001'
+) as T2
+on T1.cant_mat = T2.cant_mat
+
+////////////////////////////////////////////////////////////////////////
+//Solución  – Con HAVING
+select c.boleta, count(distinct c.clave) cant_mat
+from Escuela.Cursa c
+join Escuela.Imparte i
+on c.clave = i.clave
+and c.Semestre = i.semestre
+and c.idGrupo = i.idGrupo
+and c.calif >= 6 
+and i.numEmpleado = 'P0000001'
+group by c.boleta
+having count(distinct c.clave) = 
+      (select count(distinct clave)
+       from Escuela.Imparte
+       where numEmpleado = 'P0000001')
